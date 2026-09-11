@@ -1,0 +1,47 @@
+# Omnipacto – selbst hosten
+#
+#   curl -O https://omnipacto.de/docker-compose.yml
+#   docker compose up -d
+#
+# Danach http://localhost:8000 im Browser öffnen und das erste Konto anlegen.
+# (Ist der Port belegt:  PORT=8080 docker compose up -d)
+# Mehr ist nicht nötig: Schlüssel erzeugt Omnipacto beim ersten Start selbst.
+#
+# Deine Daten liegen in ./data neben dieser Datei – ein Ordner, eine Sicherung.
+# Paperless-ngx, ein Sprachmodell und den Mailversand trägst du später in der
+# Anwendung ein, unter Einstellungen → Instanz.
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: omnipacto
+      POSTGRES_USER: omnipacto
+      # Die Datenbank ist nur innerhalb dieser Compose-Umgebung erreichbar und nach
+      # außen nicht geöffnet; ein eigenes Passwort ist möglich, aber nicht nötig.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-omnipacto}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U omnipacto -d omnipacto"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    image: ghcr.io/maaatze/omnipacto:latest
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg://omnipacto:${POSTGRES_PASSWORD:-omnipacto}@db:5432/omnipacto
+      # Trage hier die Adresse ein, unter der du Omnipacto aufrufst, sobald sie nicht
+      # mehr localhost ist – sie steht in den Links zum Zurücksetzen des Passworts.
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8000}
+    volumes:
+      - ./data/files:/data/files
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      # Ist 8000 bei dir belegt: PORT=8080 docker compose up -d
+      - "${PORT:-8000}:8000"
