@@ -8,7 +8,8 @@
   Vertragsverwaltung für Familien, Privatpersonen und kleine Unternehmen –
   auf deinem eigenen Server.<br>
   <a href="https://omnipacto.de">omnipacto.de</a> ·
-  <a href="https://demo.omnipacto.de">Demo ansehen</a>
+  <a href="https://demo.omnipacto.de">Demo ansehen</a> ·
+  <a href="README.en.md">English</a>
 </p>
 
 ---
